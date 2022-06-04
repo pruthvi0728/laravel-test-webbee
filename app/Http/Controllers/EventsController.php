@@ -180,6 +180,27 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+        $sqlQueryData = Event::select('events.*', 'workshops.id as workshops_id', 'workshops.start as workshops_start', 'workshops.end as workshops_end', 'workshops.event_id as workshops_event_id', 'workshops.name as workshops_name', 'workshops.created_at as workshops_created_at', 'workshops.updated_at as workshops_updated_at')->leftJoin('workshops', 'events.id', 'workshops.event_id')->whereColumn('workshops.start', '>', 'events.created_at')->get();
+        $data = [];
+        $workshopData = [];
+        foreach($sqlQueryData as $key => $value){
+            $workshopData[$value->id][$value->workshops_id] = [
+                'id' => $value->workshops_id,
+                'start' => $value->workshops_start,
+                'end' => $value->workshops_end,
+                'event_id' => $value->workshops_event_id,
+                'name' => $value->workshops_name,
+                'created_at' => $value->workshops_created_at,
+                'updated_at' => $value->workshops_updated_at
+            ];
+            $data[$value->id] = [
+                'id' => $value->id,
+                'name' => $value->name,
+                'created_at' => $value->created_at,
+                'updated_at' => $value->updated_at,
+                'workshops' => array_values($workshopData[$value->id])
+            ];
+        }
+        return json_encode(array_values($data));
     }
 }
